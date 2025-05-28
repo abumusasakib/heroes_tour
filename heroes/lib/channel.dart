@@ -1,6 +1,7 @@
 import 'package:conduit_postgresql/conduit_postgresql.dart';
 import 'package:heroes/controllers/cors_controller.dart';
 import 'package:heroes/controllers/heroes_controller.dart';
+import 'package:heroes/controllers/static_file_controller.dart';
 import 'package:heroes/heroes.dart';
 
 /// This type initializes an application.
@@ -41,11 +42,11 @@ class HeroesChannel extends ApplicationChannel {
     // Add CORS middleware globally
     router.route("/*").link(CORSController.new);
 
-    router.route("/heroes/[:id]").link(() => HeroesController(context));
+    // Serve client.html at root "/"
+    router.route("/").link(StaticFileController.new);
 
-    router.route("/example").linkFunction((request) async {
-      return Response.ok({"key": "value"});
-    });
+    // Heroes API
+    router.route("/heroes/[:id]").link(() => HeroesController(context));
 
     return router;
   }

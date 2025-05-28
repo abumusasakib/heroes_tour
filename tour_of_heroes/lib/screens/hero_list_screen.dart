@@ -6,12 +6,19 @@ import 'package:tour_of_heroes/cubit/hero_state.dart';
 import 'package:tour_of_heroes/models/hero_model.dart';
 import 'package:tour_of_heroes/screens/api_settings_screen.dart';
 
-class HeroListScreen extends StatelessWidget {
+class HeroListScreen extends StatefulWidget {
   final ValueNotifier<String> apiBaseUrl;
 
   HeroListScreen({super.key, required this.apiBaseUrl});
 
+  @override
+  State<HeroListScreen> createState() => _HeroListScreenState();
+}
+
+class _HeroListScreenState extends State<HeroListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _newHeroController = TextEditingController();
+  final TextEditingController _editHeroController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -29,24 +36,25 @@ class HeroListScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      ApiSettingsScreen(currentUrl: apiBaseUrl.value),
+                      ApiSettingsScreen(currentUrl: widget.apiBaseUrl.value),
                 ),
               );
-              if (newUrl != null && newUrl != apiBaseUrl.value) {
-                apiBaseUrl.value = newUrl;
+              if (newUrl != null && newUrl != widget.apiBaseUrl.value) {
+                widget.apiBaseUrl.value = newUrl;
               }
             },
           )
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddHeroDialog(context),
+        child: const Icon(Icons.add),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Top Heroes",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
             BlocBuilder<HeroCubit, HeroState>(
               builder: (context, state) {
                 if (state is HeroLoading) {
@@ -76,51 +84,60 @@ class HeroListScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: topHeroes.map((hero) {
-                              return Expanded(
-                                child: GestureDetector(
-                                  onTap: () => context
-                                      .read<HeroCubit>()
-                                      .getHeroById(hero.id),
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 12),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 24),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF527285),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        hero.name,
-                                        style: const TextStyle(
-                                            color: Colors.white, fontSize: 18),
+                          if (topHeroes.isNotEmpty) ...[
+                            const Text("Top Heroes",
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: topHeroes.map((hero) {
+                                return Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => context
+                                        .read<HeroCubit>()
+                                        .getHeroById(hero.id),
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 24),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF527285),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          hero.name,
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 24),
-                          const Text("Hero Search",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _searchController,
-                            decoration: const InputDecoration(
-                              hintText: 'Search heroes...',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(),
+                                );
+                              }).toList(),
                             ),
-                            onChanged: (query) {
-                              context.read<HeroCubit>().searchHero(query);
-                            },
-                          ),
-                          const SizedBox(height: 16),
+                          ],
+                          const SizedBox(height: 24),
+                          if (selectedHero == null) ...[
+                            const Text("Hero Search",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _searchController,
+                              decoration: const InputDecoration(
+                                hintText: 'Search heroes...',
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (query) {
+                                context.read<HeroCubit>().searchHero(query);
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                           if (selectedHero != null)
                             Container(
                               width: double.infinity,
@@ -141,14 +158,14 @@ class HeroListScreen extends StatelessWidget {
                                   Text("ID: ${selectedHero.id}"),
                                   const SizedBox(height: 8),
                                   TextField(
+                                    controller: _editHeroController
+                                      ..text = selectedHero.name,
                                     decoration: const InputDecoration(
                                       labelText: 'Name',
                                       border: OutlineInputBorder(),
                                       filled: true,
                                       fillColor: Colors.white,
                                     ),
-                                    controller: TextEditingController(
-                                        text: selectedHero.name),
                                   ),
                                   const SizedBox(height: 12),
                                   Row(
@@ -162,8 +179,19 @@ class HeroListScreen extends StatelessWidget {
                                         child: const Text("Back"),
                                       ),
                                       ElevatedButton(
-                                        onPressed: () {},
+                                        onPressed: () => context
+                                            .read<HeroCubit>()
+                                            .updateHero(selectedHero!.id,
+                                                _editHeroController.text),
                                         child: const Text("Save"),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red),
+                                        onPressed: () => context
+                                            .read<HeroCubit>()
+                                            .deleteHero(selectedHero!.id),
+                                        child: const Text("Delete"),
                                       ),
                                     ],
                                   )
@@ -180,15 +208,13 @@ class HeroListScreen extends StatelessWidget {
                                     .contains(
                                         _searchController.text.toLowerCase()))
                                 .map((hero) => Container(
-                                      margin:
-                                          const EdgeInsets.only(bottom: 8),
+                                      margin: const EdgeInsets.only(bottom: 8),
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         border: Border.all(
                                             color: Colors.grey.shade300),
-                                        borderRadius:
-                                            BorderRadius.circular(5),
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: GestureDetector(
                                         onTap: () => context
@@ -208,6 +234,33 @@ class HeroListScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAddHeroDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Add New Hero"),
+        content: TextField(
+          controller: _newHeroController,
+          decoration: const InputDecoration(hintText: "Enter hero name"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<HeroCubit>().addHero(_newHeroController.text);
+              _newHeroController.clear();
+              Navigator.pop(context);
+            },
+            child: const Text("Add"),
+          ),
+        ],
       ),
     );
   }

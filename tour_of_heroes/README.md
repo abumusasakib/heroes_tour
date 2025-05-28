@@ -1,16 +1,30 @@
-# tour_of_heroes
+# Tour of Heroes
 
-A new Flutter project.
+## Key Features
 
-## Getting Started
+* **Dashboard View**: Highlights top heroes visually in a grid layout.
+* **Hero Search**: Real-time search box to filter and select heroes.
+* **Hero Detail View**: View and update hero details like ID and name.
 
-This project is a starting point for a Flutter application.
+## REST Integration
 
-A few resources to get you started if this is your first Flutter project:
+Connects to the Dart Conduit API (`http://localhost:8888/heroes`) for:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* `GET /heroes`: Fetch all heroes
+* `GET /heroes/:id`: Fetch hero detail
+* `PUT /heroes/:id`: Update hero
+* `POST /heroes`: Add a new hero
+* `DELETE /heroes/:id`: Delete hero
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+> CORS is enabled in the Conduit backend (`channel.dart`) for Flutter web compatibility.
+
+## Example Usage
+
+```dart
+final response = await http.get(Uri.parse('http://localhost:8888/heroes'));
+final List<dynamic> heroes = jsonDecode(response.body);
+```
+
+## Notes
+
+* Ensure the backend server and frontend are hosted on compatible ports or configure proxy/CORS.
