@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tour_of_heroes/cubit/hero_cubit.dart';
+import 'package:tour_of_heroes/screens/hero_list_screen.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  final ValueNotifier<String> apiBaseUrl = ValueNotifier("http://localhost:8888");
+
+  MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: apiBaseUrl,
+      builder: (context, baseUrl, _) {
+        return MaterialApp(
+          title: 'Tour of Heroes',
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: BlocProvider(
+            create: (_) => HeroCubit(baseUrl)..fetchHeroes(),
+            child: HeroListScreen(apiBaseUrl: apiBaseUrl),
+          ),
+        );
+      },
+    );
+  }
+}
