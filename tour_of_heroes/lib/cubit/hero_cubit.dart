@@ -8,6 +8,8 @@ class HeroCubit extends Cubit<HeroState> {
   final String baseUrl;
   List<HeroModel> _allHeroes = [];
 
+  List<HeroModel> get allHeroes => _allHeroes;
+
   HeroCubit(this.baseUrl) : super(HeroInitial());
 
   Future<void> fetchHeroes() async {

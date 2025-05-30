@@ -9,7 +9,7 @@ import 'package:tour_of_heroes/screens/api_settings_screen.dart';
 class HeroListScreen extends StatefulWidget {
   final ValueNotifier<String> apiBaseUrl;
 
-  HeroListScreen({super.key, required this.apiBaseUrl});
+  const HeroListScreen({super.key, required this.apiBaseUrl});
 
   @override
   State<HeroListScreen> createState() => _HeroListScreenState();
@@ -19,6 +19,8 @@ class _HeroListScreenState extends State<HeroListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _newHeroController = TextEditingController();
   final TextEditingController _editHeroController = TextEditingController();
+
+  List<HeroModel> _allHeroes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -62,21 +64,28 @@ class _HeroListScreenState extends State<HeroListScreen> {
                 } else if (state is HeroError) {
                   return Center(child: Text("Error: ${state.message}"));
                 } else {
-                  List<HeroModel> heroes = [];
                   HeroModel? selectedHero;
 
                   if (state is HeroLoaded) {
-                    heroes = state.heroes;
+                    _allHeroes = state.heroes; // Cache full list once loaded
                   } else if (state is HeroDetailLoaded) {
                     selectedHero = state.hero;
                     final currentState = context.read<HeroCubit>().state;
                     if (currentState is HeroLoaded) {
-                      heroes = currentState.heroes;
+                      _allHeroes = currentState.heroes;
                     }
                   }
 
                   final topHeroes =
-                      heroes.length >= 4 ? heroes.sublist(0, 4) : heroes;
+                      context.read<HeroCubit>().allHeroes.take(4).toList();
+
+                  final filteredHeroes = _searchController.text.isEmpty
+                      ? _allHeroes
+                      : _allHeroes
+                          .where((hero) => hero.name
+                              .toLowerCase()
+                              .contains(_searchController.text.toLowerCase()))
+                          .toList();
 
                   return SingleChildScrollView(
                     child: Padding(
@@ -199,32 +208,31 @@ class _HeroListScreenState extends State<HeroListScreen> {
                               ),
                             ),
                           const SizedBox(height: 8),
-                          ListView(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            children: heroes
-                                .where((hero) => hero.name
-                                    .toLowerCase()
-                                    .contains(
-                                        _searchController.text.toLowerCase()))
-                                .map((hero) => Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(
-                                            color: Colors.grey.shade300),
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () => context
-                                            .read<HeroCubit>()
-                                            .getHeroById(hero.id),
-                                        child: Text(hero.name),
-                                      ),
-                                    ))
-                                .toList(),
-                          )
+                          if (selectedHero == null)
+                            ListView(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: filteredHeroes
+                                  .map((hero) => Container(
+                                        margin:
+                                            const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                              color: Colors.grey.shade300),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: GestureDetector(
+                                          onTap: () => context
+                                              .read<HeroCubit>()
+                                              .getHeroById(hero.id),
+                                          child: Text(hero.name),
+                                        ),
+                                      ))
+                                  .toList(),
+                            )
                         ],
                       ),
                     ),

@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/courses/coding/moblleApp/heroes_tour/tour_of_heroes/windows"
+  "cmake.sourceDirectory": "D:/courses/coding/moblleApp/heroes_tour/tour_of_heroes/windows",
+  "dart.flutterSdkPath": ".fvm/versions/3.32.1"
 }

@@ -33,9 +33,16 @@ class HeroesController extends ResourceController {
   Future<Response> createHero(@Bind.body(ignore: ["id"]) Hero inputHero) async {
     final query = Query<Hero>(context)..values = inputHero;
 
-    final insertedHero = await query.insert();
-
-    return Response.ok(insertedHero);
+    try {
+      final insertedHero = await query.insert();
+      return Response.ok(insertedHero);
+    } catch (e) {
+      if (e.toString().contains('23505')) {
+        // Unique violation
+        return Response.conflict(body: {'error': 'Hero name must be unique.'});
+      }
+      rethrow;
+    }
   }
 
   @Operation.put('id')

@@ -1,10 +1,10 @@
-import 'package:heroes/heroes.dart';
 import 'package:conduit_test/conduit_test.dart';
+import 'package:heroes/heroes.dart';
 
-export 'package:heroes/heroes.dart';
-export 'package:conduit_test/conduit_test.dart';
-export 'package:test/test.dart';
 export 'package:conduit_core/conduit_core.dart';
+export 'package:conduit_test/conduit_test.dart';
+export 'package:heroes/heroes.dart';
+export 'package:test/test.dart';
 
 /// A testing harness for heroes.
 ///
@@ -19,10 +19,12 @@ export 'package:conduit_core/conduit_core.dart';
 ///           });
 ///         }
 ///
-class Harness extends TestHarness<HeroesChannel> {
+class Harness extends TestHarness<HeroesChannel> with TestHarnessORMMixin {
   @override
-  Future onSetUp() async {}
+  ManagedContext get context => channel!.context;
 
   @override
-  Future onTearDown() async {}
+  Future onSetUp() async {
+    await resetData();
+  }
 }
