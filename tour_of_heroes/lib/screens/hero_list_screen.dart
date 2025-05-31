@@ -1,10 +1,12 @@
 // UI
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tour_of_heroes/cubit/auth_cubit.dart';
 import 'package:tour_of_heroes/cubit/hero_cubit.dart';
 import 'package:tour_of_heroes/cubit/hero_state.dart';
 import 'package:tour_of_heroes/models/hero_model.dart';
 import 'package:tour_of_heroes/screens/api_settings_screen.dart';
+import 'package:tour_of_heroes/storage/auth_storage.dart';
 
 class HeroListScreen extends StatefulWidget {
   final ValueNotifier<String> apiBaseUrl;
@@ -22,14 +24,31 @@ class _HeroListScreenState extends State<HeroListScreen> {
 
   List<HeroModel> _allHeroes = [];
 
+  String? _username;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async {
+    final username = await AuthStorage.getUsername();
+    setState(() {
+      _username = username;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F4F4),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title:
-            const Text("Tour of Heroes", style: TextStyle(color: Colors.black)),
+        title: Text(
+          _username != null ? "Welcome, $_username" : "Tour of Heroes",
+          style: const TextStyle(color: Colors.black),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.black),
@@ -45,6 +64,10 @@ class _HeroListScreenState extends State<HeroListScreen> {
                 widget.apiBaseUrl.value = newUrl;
               }
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<AuthCubit>().logout(),
           )
         ],
       ),

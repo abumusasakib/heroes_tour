@@ -1,8 +1,11 @@
+import 'package:conduit_core/managed_auth.dart';
 import 'package:conduit_postgresql/conduit_postgresql.dart';
 import 'package:heroes/controllers/cors_controller.dart';
 import 'package:heroes/controllers/heroes_controller.dart';
+import 'package:heroes/controllers/register_controller.dart';
 import 'package:heroes/controllers/static_file_controller.dart';
 import 'package:heroes/heroes.dart';
+import 'package:heroes/model/user.dart';
 
 /// This type initializes an application.
 ///
@@ -16,6 +19,8 @@ class HeroesChannel extends ApplicationChannel {
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
   late ManagedContext context;
+
+  late AuthServer authServer;
 
   @override
   Future prepare() async {
@@ -32,6 +37,9 @@ class HeroesChannel extends ApplicationChannel {
         config.database.databaseName);
 
     context = ManagedContext(dataModel, persistentStore);
+
+    final authStorage = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(authStorage);
   }
 
   /// Construct the request channel.
@@ -51,7 +59,16 @@ class HeroesChannel extends ApplicationChannel {
     router.route("/").link(StaticFileController.new);
 
     // Heroes API
-    router.route("/heroes/[:id]").link(() => HeroesController(context));
+    router
+        .route('/heroes/[:id]')
+        .link(() => Authorizer.bearer(authServer))
+        ?.link(() => HeroesController(context));
+
+    router.route('/auth/token').link(() => AuthController(authServer));
+
+    router
+        .route('/register')
+        .link(() => RegisterController(context, authServer));
 
     return router;
   }

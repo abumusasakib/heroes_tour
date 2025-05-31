@@ -2,7 +2,7 @@
 
 ## Running the Application Locally
 
-Run `conduit serve` from this directory to run the application. For running within an IDE, run `bin/main.dart`. By default, a configuration file named `config.yaml` will be used.
+Run `conduit serve` from this directory to run the application.
 
 To generate a SwaggerUI client, run:
 
@@ -110,6 +110,63 @@ GRANT ALL ON DATABASE dart_test TO dart;
 
 ---
 
-## Deploying the Application
+## Setting Up OAuth 2.0: Authenticating Users
 
-Refer to the official [Conduit Deployment Guide](https://conduit.io/docs/deploy/).
+Conduit supports OAuth 2.0 authentication using the `AuthController`.
+
+### Registering a Client
+
+In OAuth 2.0, a **client** is any application that interacts with your server on behalf of a user (e.g., mobile, web). Each client must be registered in the system.
+
+Run the following command to register a new client:
+
+```bash
+conduit auth add-client --id com.heroes.tutorial --connect postgres://heroes_user:password@localhost:5432/heroes
+```
+
+> ℹ️ **Note:** Clients may also have a secret, redirect URI, or scopes. If a client has a secret, it can issue refresh tokens.
+
+---
+
+### Authenticating with Username and Password
+
+Once a client is registered, use the following request to issue an access token:
+
+**Curl Example:**
+
+```bash
+curl -X POST http://localhost:8888/auth/token \
+  -H 'Authorization: Basic Y29tLmhlcm9lcy50dXRvcmlhbDo=' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'username=bob&password=password&grant_type=password'
+```
+
+The request must:
+
+- Use `POST` to `/auth/token`
+- Set `Content-Type: application/x-www-form-urlencoded`
+- Include these keys in the body:
+
+  - `username`: the user's username
+  - `password`: the user's password
+  - `grant_type`: must be `password`
+
+- Use a **Basic Authorization header** with the base64 encoded `clientID:` string
+
+Example successful response:
+
+```json
+{
+  "access_token": "687PWKFHRTQ9MveQ2dKvP95D4cWie1gh",
+  "token_type": "bearer",
+  "expires_in": 86399
+}
+```
+
+---
+
+You can now use the access token to make authorized API requests by setting the `Authorization` header:
+
+```http
+Authorization: Bearer 687PWKFHRTQ9MveQ2dKvP95D4cWie1gh
+```

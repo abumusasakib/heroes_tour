@@ -170,6 +170,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "http",
+      "rootUri": "file:///C:/Users/sakib/AppData/Local/Pub/Cache/hosted/pub.dev/http-1.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "http_multi_server",
       "rootUri": "file:///C:/Users/sakib/AppData/Local/Pub/Cache/hosted/pub.dev/http_multi_server-3.2.2",
       "packageUri": "lib/",
@@ -434,7 +440,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2025-05-30T04:16:41.332598Z",
+  "generated": "2025-05-31T14:27:31.854348Z",
   "generator": "pub",
   "generatorVersion": "3.4.1",
   "pubCache": "file:///C:/Users/sakib/AppData/Local/Pub/Cache"
