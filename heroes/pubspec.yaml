@@ -1,5 +1,5 @@
 name: heroes
-description: An empty conduit application.
+description: A server built using Conduit for managing heroes.
 version: 0.0.1
 publish_to: none
 
